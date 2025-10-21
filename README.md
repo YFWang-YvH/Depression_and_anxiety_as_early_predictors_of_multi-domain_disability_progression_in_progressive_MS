@@ -8,7 +8,26 @@ In our prospective cohort of people with primary progressive MS (PPMS), depressi
 
 ---
 
-## **1. hads_CV_Boruta_analysis.Rmd**
+## **1. hads_input_dataset_transformation.R**
+
+This script focuses on the **data transformation**
+
+1. All input datasets were transformed, filtered, and merged together for further analysis
+
+---
+
+## **2. hads_statistic_visualization.R**
+
+This script focuses on the **statistic analysis and visualization of input datasets**
+
+1. baseline characterizing of the datasets and baseline statistics
+2. negative binomial model for statistic differences in HADS score between progression and non progression
+3. logistic regression model using hads score to predict disease progression
+4. boxplots and Venn visualizations for the final manuscript
+
+---
+
+## **3. hads_CV_Boruta_analysis.Rmd**
 
 This script focuses on the **prediction with logistic regression and Boruta feature selection**
 
@@ -16,6 +35,3 @@ This script focuses on the **prediction with logistic regression and Boruta feat
 2. Boruta feature selection to find the most influental question from HADS questionnaire
 3. bootstrap of cross-validation process of logistic model, but using only the most influental questions from Boruta selection to predict disease progression
 
----
-
-## **2.**
