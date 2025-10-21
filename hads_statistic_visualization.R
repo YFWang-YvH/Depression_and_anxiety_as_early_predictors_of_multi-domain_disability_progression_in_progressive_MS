@@ -347,7 +347,7 @@ baseline_table
 .edss_str_t1 <- function(x) .q_str_t1(x, digits = 1)  
 .hads_str_t1 <- function(x) .q_str_t1(x, digits = 0)  
 
-# Create baseline table - EDSS OR T25FW OR AMSQ 2Y
+# baseline table
 baseline_table_progression_edss_or_T25FW_or_AMSQ_2y <- merged_data_1F_2y %>%
   select(
     geslacht, age_at_prev_visit, 
@@ -415,7 +415,6 @@ baseline_table_progression_edss_or_T25FW_or_AMSQ_2y <-
 baseline_table_progression_edss_or_T25FW_or_AMSQ_2y   
 
 # Baseline table EDSS or T25FW or AMSQ or SDMT or PDDS progression vs no EDSS or T25FW or AMSQ or SDMT or PDDS progression at 2 years after HADS 
-# Create baseline table - EDSS OR T25FW OR AMSQ OR SDMT OR PDDS 2Y
 baseline_table_progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y <- merged_data_1F_2y %>%
   select(
     geslacht,  
@@ -506,7 +505,7 @@ merged_data_nonprogression_base <- merged_data_1F %>%
       as.integer(SDMT_progressie_boxplot != "Ontbrekend")
   )
 
-# Step 2: Analysis 1: 2–3 vs 4–5 variables available
+# Step 2: Analysis: 2–3 vs 4–5 variables available
 merged_data_subgroup_2_3_vs_4_5 <- merged_data_nonprogression_base %>%
   mutate(
     subgroup_progressiecompleetheid = case_when(
@@ -637,7 +636,7 @@ baseline_table_2_3_vs_4_5
   )
 }
 
-# Step 2: Analysis 1: 2–3 vs 4–5 variabeles available
+# Step 2: Analysis: 2–3 vs 4–5 variabeles available
 .by_levels_2y_a <- merged_data_subgroup_2_3_vs_4_5_2y %>%
   distinct(subgroup_progressiecompleetheid) %>%
   arrange(subgroup_progressiecompleetheid) %>%
@@ -716,7 +715,7 @@ table(merged_data_1F$prev_edss, useNA = "always")
 table(merged_data_1F$next_edss, useNA = "always")
 
 
-### Figure 2K - HADS Angst vs EDSS progression 1 year after completing HADS
+### Figure 2K - HADS Anxiety vs EDSS progression 1 year after completing HADS
 boxedss1 <- ggplot(merged_data_1F, aes(x = factor(edss_progression), y = hads_angst, fill = factor(edss_progression))) +
   geom_boxplot() +
   scale_fill_manual(values = c("#0072B2", "#E69F00"), 
@@ -812,11 +811,7 @@ merged_data_1F <- merged_data_1F %>%
       TRUE ~ "Ontbrekend"
     ),
     
-    # Overwrite with ‘T25FW Progression’ for the two manually coded patients (T25FW no longer possible due to progression resulting in loss of walking ability)
-    T25FW_boxplotgroep = case_when(
-      `Participant Id` %in% c("SPINP10039", "SPINP10001") ~ "T25FW Progressie",
-      TRUE ~ T25FW_progressie_boxplot
-    ),
+    # manual annotation for two patients (T25FW no longer possible due to progression resulting in loss of walking ability) - reducted due to privacy reasons
     
     # Put in factor form for control over order in box plot
     T25FW_boxplotgroep = factor(T25FW_boxplotgroep, levels = c(
@@ -941,7 +936,7 @@ boxAMSQ2a <- ggplot(merged_data_1F, aes(x = AMSQ_progressie_boxplot, y = hads_de
   theme(legend.title = element_blank())
 boxAMSQ2a
 
-### Supplementary Figure 2B - HADS score vs AMSQ progression (NAS shown separately)
+### Supplementary Figure 2B - HADS total score vs AMSQ progression (NAS shown separately)
 boxAMSQ3a <- ggplot(merged_data_1F, aes(x = AMSQ_progressie_boxplot, y = hads_totaal, fill = AMSQ_progressie_boxplot)) +
   geom_boxplot() +
   scale_fill_manual(values = c(
@@ -955,7 +950,7 @@ boxAMSQ3a <- ggplot(merged_data_1F, aes(x = AMSQ_progressie_boxplot, y = hads_to
 boxAMSQ3a
 
 #### statistics - HADS vs AMSQ progression 1 year after completing HADS 
-# Filter only the 2 relevante groups (no progression vs progression) for calculating p-value (using post-hoc testing)
+# Filter only the 2 relevant groups (no progression vs progression) for calculating p-value (using post-hoc testing)
 subset_data_AMSQ <- merged_data_1F %>%
   filter(AMSQ_progressie_boxplot %in% c("Geen AMSQ Progressie", "AMSQ Progressie"))
 
@@ -970,7 +965,7 @@ check_model(m_angst_nb_AMSQ)
 check_model(m_depr_nb_AMSQ)
 check_model(m_tot_nb_AMSQ)
 
-### 3. Post-hoc test using emmeans (pairwise, Tukey correctie)
+### 3. Post-hoc test using emmeans (pairwise, Tukey test)
 # HADS Anxiety
 emm_angst_nb_AMSQ <- emmeans(m_angst_nb_AMSQ, pairwise ~ AMSQ_progressie_boxplot, adjust = "tukey")
 emm_angst_nb_AMSQ$contrasts
@@ -994,7 +989,7 @@ ggsave("figuren/boxplot_hads_depressie_vs_AMSQ_wNAs_19092025.png", plot = boxAMS
 ggsave("figuren/boxplot_hads_totaal_vs_AMSQ_wNAs_19092025.png", plot = boxAMSQ3a, width = 6, height = 4, dpi = 300)     
 
 #### HADS vs SDMT progression 1 year after completing HADS     
-# Maak separate variabele so that NAs are displayed separately (instead of NA = not progresssive)     
+# make separate variabele so that NAs are displayed separately (instead of NA = not progresssive)     
 merged_data_1F <- merged_data_1F %>%
   mutate(
     SDMT_progressie_boxplot = case_when(
@@ -1335,7 +1330,7 @@ table(merged_data_1F_2y$edss_progression_2, useNA = "always")
 table(merged_data_1F_2y$prev_edss, useNA = "always")
 table(merged_data_1F_2y$next_edss_2, useNA = "always")
 
-### Figure 2N - HADS angst vs EDSS progression 2 years after completing HADS
+### Figure 2N - HADS anxiety vs EDSS progression 2 years after completing HADS
 boxedss1_2y <- ggplot(merged_data_1F_2y, aes(x = factor(edss_progression_2), y = hads_angst, fill = factor(edss_progression_2))) +
   geom_boxplot() +
   scale_fill_manual(values = c("#0072B2", "#E69F00"), 
@@ -1411,16 +1406,13 @@ merged_data_1F_2y <- merged_data_1F_2y %>%
       TRUE ~ "Ontbrekend"
     ),
     
-    # Manually overwrite TRUEs
-    T25FW_boxplotgroep_2y = case_when(
-      `Participant Id` %in% c("SPINP012003", "SPINP070005", "SPINP10001", "SPINP10039") ~ "T25FW Progressie",
-      TRUE ~ T25FW_progressie_2y_box
-    ),
+    # Manually annotate a few patients - deducted due to privacy reasons
+   
     T25FW_boxplotgroep_2y = factor(T25FW_boxplotgroep_2y,
                                    levels = c("Geen T25FW Progressie", "T25FW Progressie", "Ontbrekend"))
   )
 
-### Supplementary 2E - HADS angst score vs T25FW progression after 2 years (NAs = shown separately)
+### Supplementary 2E - HADS anxiety score vs T25FW progression after 2 years (NAs = shown separately)
 box_T25FW_2y <- ggplot(merged_data_1F_2y, aes(x = T25FW_boxplotgroep_2y, y = hads_angst, fill = T25FW_boxplotgroep_2y)) +
   geom_boxplot() +
   scale_fill_manual(values = c(
@@ -2130,7 +2122,7 @@ plot(simulationoutput)
 
 ##### Create forest plot with OR's and 95% CI's 
 
-##### Forest plot multivariabel logistische regressiemodellen van log10 hads + 0.1 modellen 1y 
+##### Forest plot multivariable logistic regression model of log10 hads + 0.1 1y 
 
 # Function to extract OR + 95% CI from a model
 extract_or <- function(model, variable_name, hads_type, progression_type) {
@@ -2265,7 +2257,7 @@ model1F7c <- glm(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y ~ log10(ha
 
 ##### Create forest plot with OR's and 95% CI's
 
-##### Forest plot multivariabel logistische regressiemodellen van log10 hads + 0.1 modellen 2y
+##### Forest plot multivariable logistic regression model of log10 hads + 0.1 2y
 
 # Function to extract OR + 95% CI from a model
 extract_or <- function(model, variable_name, hads_type, progression_type) {
