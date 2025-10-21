@@ -155,7 +155,7 @@ data_transformed_filtered <- data_transformed_filtered %>%
 data_transformed_filtered <- data_transformed_filtered %>%
   left_join(new_subset, by = "Participant Id") 
 
-## following patients criteria were applied: patients must have correct information, patients have PIF, patients with a PPMS diagnosis, patients with correct classification, patients with BL visit, incorrect/missing values are replaced with correct values or NA
+## following patients criteria were applied: PIF signed, PPMS diagnosis, had BL visit, correct information, incorrect/missing values are replaced with correct values or NA
 ## This process of code is deducted here to hide patient id due to privacy reason
 
 #### LOADING AND TRANSFORMING/CONVERTING HADS DATA FOR ANALYSIS ####
@@ -169,7 +169,7 @@ dataHADSFU4 <- read_excel("SPIN-P_excel_export_20250611113137.xlsx", sheet = "An
 dataHADSFU5 <- read_excel("SPIN-P_excel_export_20250611113137.xlsx", sheet = "Angst_en_stemming_FU5", na = "NULL")
 
 ##### 2. Filter out 
-## following patients criteria were applied: patients must have correct information, patients have PIF, patients with a PPMS diagnosis, patients with correct classification, patients with BL visit, incorrect/missing values are replaced with correct values or NA
+## following patients criteria were applied: PIF signed, PPMS diagnosis, had BL visit, correct information, incorrect/missing values are replaced with correct values or NA
 ## This process of code is deducted here to hide patient id due to privacy reason
 
 ##### 3. Filter out columns with 'Survey Instance Id', 'Survey Package Id' en 'Castor Participant Status' #####
@@ -312,7 +312,7 @@ data_HADS_complete <- data_HADS_combined %>%
   filter(if_all(starts_with("hads_"), ~ !is.na(.)))
 
 
-## select HADS questionnaire with visit at least 10 months (304 days) later, with the previous visit +/- one month (31 days) prior to completing the HADS 
+## select HADS questionnaire with visit at least 10 months (304 days) later, with the previous visit +/- one month (31 days) to completing the HADS 
 # Add the visit dates to the data_HADS_complete dataset 
 visit_dates <- data_transformed_filtered %>%
   select(`Participant Id`, 
@@ -466,7 +466,7 @@ dataAMSQFU4 <- read_excel("SPIN-P_excel_export_20250611113137.xlsx", sheet = "Ar
 dataAMSQFU5 <- read_excel("SPIN-P_excel_export_20250611113137.xlsx", sheet = "Armfunctie_FU5", na = "NULL")
 
 ##### 2. Filter out 
-## following patients criteria were applied: patients must have correct information, patients have PIF, patients with a PPMS diagnosis, patients with correct classification, patients with BL visit, incorrect/missing values are replaced with correct values or NA
+## following patients criteria were applied: PIF signed, PPMS diagnosis, had BL visit, correct information, incorrect/missing values are replaced with correct values or NA
 ## This process of code is deducted here to hide patient id due to privacy reason
 
 ##### 3. Filter out columns with ‘Survey Instance Id’, ‘Survey Package Id’, and 'Castor Participant Status' #####
@@ -588,7 +588,7 @@ data_AMSQ_complete <- data_AMSQ_combined %>%
 data_AMSQ_complete <- data_AMSQ_complete %>%
   mutate(survey_date = as.Date(coalesce(`Survey Completed On`, `Survey Sent Date`), format="%Y-%m-%d"))
 
-# Add prev_visit_date, next_visit_date and next_visit_2_date from merged_data_1F toe to AMSQ-data based on Participant Id
+# Add prev_visit_date, next_visit_date and next_visit_2_date from merged_data_1F to AMSQ-data based on Participant Id
 data_AMSQ_complete <- data_AMSQ_complete %>%
   left_join(
     merged_data_1F %>%
@@ -716,7 +716,7 @@ merged_data_1F <- merged_data_1F %>%
   left_join(data_AMSQ_complete_criterion_2_filtered_merge, by = "Participant Id") %>%
   left_join(data_AMSQ_complete_criterion_3_filtered_merge, by = "Participant Id")
 
-# Add extra columns to merged_data_1F with information whether AMSQ is present at both prev and next visit and at both prev and next visit 2 
+# Add extra columns to merged_data_1F with information whether AMSQ is present at both prev_ and next_ visit and at both prev_ and next_visit_2 
 merged_data_1F <- merged_data_1F %>%
   mutate(
     AMSQ_prev_and_next_available = !is.na(prev_AMSQ_totaal) & !is.na(next_AMSQ_totaal),
@@ -785,12 +785,12 @@ merged_data_1F <- merged_data_1F %>%
       !is.na(prev_T25FW) & !is.na(next_T25FW) ~ FALSE,
       TRUE ~ FALSE
     )
-  ) # some patients info were manually annotated here due to changes in disease progression, code reducted here due to privacy reason
+  ) # some patients info were manually annotated here due to loss of walking ability at the next_visit_2 and therefore progression, code reducted here due to privacy reason
 
 ##### 3. Add AMSQ progression data #####
 merged_data_1F <- merged_data_1F %>%
   mutate(
-    # Progressie bij next_visit t.o.v. prev_visit
+    # Progression at next_visit compared to prev_visit 
     progression_AMSQ = !is.na(prev_AMSQ_totaal) & !is.na(next_AMSQ_totaal) & 
       (next_AMSQ_totaal - prev_AMSQ_totaal) >= 18
   )
