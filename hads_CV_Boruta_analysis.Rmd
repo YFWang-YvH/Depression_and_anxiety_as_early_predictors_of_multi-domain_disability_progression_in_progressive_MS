@@ -1,5 +1,5 @@
 ---
-title: "hads_project_romy_analysis"
+title: "hads_CV_Boruta_analysis"
 author: 
    name: Yifan vH
    affiliation: ErasmusMC
@@ -181,6 +181,7 @@ optimization_plot = function(df, response_var, predictors, coef_matrix, coef_sum
 ```
 
 #### run the bootstrp of CV
+The bootstrap of CV was run with year 1 and year 2 data and were used to produce Figure 3C-H
 ```{r fig.height=10, fig.width=15, message=FALSE, warning=FALSE}
 # set FPR grid to interpolate all ROC curves to the same set of FPR values to compute mean TPR and 95% CIs
 fpr_grid <- seq(0, 1, length.out = 100)  
@@ -261,7 +262,7 @@ for (i in 1:length(combo)){
     upper_auc = quantile(auc, 0.975)
   )
 
-  # Plot mean ROC curves with CI ribbons
+  # Plot mean ROC curves with CI ribbons - Figure 3C-H
   roc_summary_auc = merge(roc_summary, auc_summary, by = "response")
   roc_summary_auc$response_label = case_when(roc_summary_auc$response  %in% c("edss_progression", 
                                                                               "edss_progression_2") ~ "edss model",
@@ -273,6 +274,7 @@ for (i in 1:length(combo)){
   roc_summary_auc$label = paste(roc_summary_auc$response_label, ": AUC = ", round(roc_summary_auc$mean_auc, 3),
                           " (95% CI: ", round(roc_summary_auc$lower_auc, 3), "-", round(roc_summary_auc$upper_auc, 3), ")")
 
+  ## Figure 3C-H
   p1 = ggplot(roc_summary_auc, aes(x = FPR, y = mean_TPR, color = label, fill = label)) +
   geom_step(size = 1.2) +
   geom_ribbon(aes(ymin = lower_TPR, ymax = upper_TPR), alpha = 0.2, color = NA) +
@@ -329,7 +331,7 @@ for (i in 1:length(combo)){
 
 To find which question is the most influential for the prediction
 
-### functions
+### function 3: bootstrap of Boruta feature seleciton
 ```{r}
 ## bootstrapped boruta for small dataset
 bootstrap_boruta = function(data, B = B){
@@ -436,6 +438,7 @@ bootstrap_boruta = function(data, B = B){
 ```
 
 ### run bootstrap of boruta
+The bootstrap of Boruta was run with year 2 data and were used to produce Figure 4A-B
 ```{r}
 # yr2_Boruta_df = hads_2yr %>% dplyr::select(hads_1:hads_14, progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y)
 # 
@@ -447,7 +450,8 @@ Boruta_yr2 = readRDS(file = paste0(outDir, "year2_boruta.rds"))
 
 # output all the figures
 # pdf(file = paste0(outDir, "year2_bootstrap_boruta.pdf"), width = 20, height = 10) 
-  
+
+## Figure 4A-B
 plot((Boruta_yr2$plot1 | Boruta_yr2$plot2))
   
 # dev.off()
@@ -456,7 +460,7 @@ plot((Boruta_yr2$plot1 | Boruta_yr2$plot2))
 
 ## step 5: remodel with boruta selcted feature
 hads question 8 and 6 are most important, we check how well these questions alone can predict disease progression.
-
+The bootstrap of CV was run with year 2 data with only hads 6 and/or 8 as predictors and were used to produce Figure 4C-D
 ```{r message=FALSE, warning=FALSE}
 hads_2yr$hads_8_6 = hads_2yr$hads_8 + hads_2yr$hads_6
 
@@ -546,6 +550,7 @@ for (i in 1:length(combo)){
   roc_summary_auc$label = paste(roc_summary_auc$response_label, ": AUC = ", round(roc_summary_auc$mean_auc, 3),
                           " (95% CI: ", round(roc_summary_auc$lower_auc, 3), "-", round(roc_summary_auc$upper_auc, 3), ")")
 
+  ## Figure 4C-D
   p1 = ggplot(roc_summary_auc, aes(x = FPR, y = mean_TPR, color = label, fill = label)) +
   geom_step(size = 1.2) +
   geom_ribbon(aes(ymin = lower_TPR, ymax = upper_TPR), alpha = 0.2, color = NA) +
