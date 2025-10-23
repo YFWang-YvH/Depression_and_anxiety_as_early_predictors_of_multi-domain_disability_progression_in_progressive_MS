@@ -1,4 +1,4 @@
-# **Project: Symptoms of depression and anxiety are early biomarkers of multi-domain disability progression in progressive MS**
+# **Project: Symptoms of depression and anxiety are early predictors of multi-domain disability progression in progressive MS**
 
 **Project background**
 In multiple sclerosis (MS), depression and anxiety are common, yet their relation to disease progression is unclear. We investigated whether Hospital Anxiety and Depression Scale (HADS) symptoms predict neurological disability progression.
