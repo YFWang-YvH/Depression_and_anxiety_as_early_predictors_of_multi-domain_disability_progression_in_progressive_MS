@@ -10,7 +10,7 @@ output:
 ---
 __Dataset information__
 
-This script is as part of the manuscript - Symptoms of depression and anxiety are early biomarkers of multi-domain disability progression in progressive MS. In this script, we model how hads score can predict disease progression and define which questions from hads questionnaire are most important.
+This script is as part of the manuscript - Symptoms of depression and anxiety are early predictors of multi-domain disability progression in progressive MS. In this script, we model how hads score can predict disease progression and define which questions from hads questionnaire are most important.
 
 
 ```{r setup, include=FALSE}
