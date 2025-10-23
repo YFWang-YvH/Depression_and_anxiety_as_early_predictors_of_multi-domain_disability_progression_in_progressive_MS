@@ -1,7 +1,7 @@
 #Date: 29-11-2024
 #Author: Romy Klein Kranenbarg
 #Description: 
-# this script is for analysis as part of the manuscript 'Symptoms of depression and anxiety are early biomarkers of multi-domain disability progression in progressive MS'
+# this script is for analysis as part of the manuscript 'Symptoms of depression and anxiety are early predictors of multi-domain disability progression in progressive MS'
 # in this script, we perform statistical analysis as described in the manuscript and visualization for the manuscript
 
 #### SETTING UP THE ENVIRONMENT ####
