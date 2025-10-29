@@ -1,38 +1,17 @@
 #Date: 29-11-2024
 #Author: Romy Klein Kranenbarg
 #Description: 
-# this script is for analysis as part of the manuscript 'Symptoms of depression and anxiety are early predictors of multi-domain disability progression in progressive MS'
+# this script is for analysis as part of the manuscript 'Symptoms of depression and anxiety are early biomarkers of multi-domain disability progression in progressive MS'
 # in this script, we load and transform all data for analysis
 
 #### SETTING UP THE ENVIRONMENT ####
 ##### 1. Install and load packages #####
-# install.packages("readxl")
-# install.packages("dplyr")
-# install.packages("stringr")
-# install.packages("ggplot2")
-# install.packages("gtsummary")
-# install.packages("emmeans")
-# install.packages("MASS")
-# install.packages("car")
-# install.packages("forecast")
-# install.packages("DHARMa")
-# install.packages("ggVennDiagram")
-
+#install.packages("readxl")
+#install.packages("dplyr")
+#install.packages("stringr")
 library(readxl)
 library(dplyr)
 library(stringr)
-library(ggplot2)
-library(gtsummary)
-library(emmeans)
-library(MASS)
-library(performance)
-library(car)
-library(forecast)
-library(DHARMa)
-library(knitr)
-library(ggVennDiagram)
-library(scales)
-library(openxlsx)
 
 ##### 2. Set up Working directory #####
 setwd("/path/to/your/work/directory")
@@ -48,10 +27,6 @@ colnames(data_clean)[colnames(data_clean) == "datumpoliFU1_1"] <- "datumpoliFU2"
 colnames(data_clean)[colnames(data_clean) == "datumpoliFU1_1_1"] <- "datumpoliFU3"
 colnames(data_clean)[colnames(data_clean) == "datumpoliFU1_1_1_1"] <- "datumpoliFU4"
 colnames(data_clean)[colnames(data_clean) == "datumpoliFU1_1_1_1_1"] <- "datumpoliFU5"
-colnames(data_clean)[colnames(data_clean) == "beloopFU1_1"] <- "beloopFU2"
-colnames(data_clean)[colnames(data_clean) == "beloopFU1_1_1"] <- "beloopFU3"
-colnames(data_clean)[colnames(data_clean) == "beloopFU1_1_1_1"] <- "beloopFU4"
-colnames(data_clean)[colnames(data_clean) == "beloopFU1_1_1_1_1"] <- "beloopFU5"
 
 ##### 2. Extract numerical values of PDDS from text labels and set them as ordinal factors #####
 
@@ -113,14 +88,30 @@ data_transformed$SDMT_FU3 <- as.numeric(data_transformed$SDMT_FU3)
 data_transformed$SDMT_FU4 <- as.numeric(data_transformed$SDMT_FU4)
 data_transformed$SDMT_FU5 <- as.numeric(data_transformed$SDMT_FU5)
 
+ # Add extra columns with EDSS and PDDS as numerical value for progression analyses
+data_transformed <- data_transformed %>%
+  mutate(
+    EDSS_BL_numeric = as.numeric(as.character(EDSS)), 
+    EDSS_FU1_numeric = as.numeric(as.character(EDSS_FU1)),
+    EDSS_FU2_numeric = as.numeric(as.character(EDSS_FU2)),
+    EDSS_FU3_numeric = as.numeric(as.character(EDSS_FU3)),
+    EDSS_FU4_numeric = as.numeric(as.character(EDSS_FU4)),
+    EDSS_FU5_numeric = as.numeric(as.character(EDSS_FU5)),
+    PDDS_BL_numeric = as.numeric(as.character(PDDS)), 
+    PDDS_FU1_numeric = as.numeric(as.character(PDDS_FU1)),
+    PDDS_FU2_numeric = as.numeric(as.character(PDDS_FU2)),
+    PDDS_FU3_numeric = as.numeric(as.character(PDDS_FU3)),
+    PDDS_FU4_numeric = as.numeric(as.character(PDDS_FU4)),
+    PDDS_FU5_numeric = as.numeric(as.character(PDDS_FU5))) 
+
 ##### 4. Create filtered table with relevant variables "study results"
 
 ## Create a new table containing only the relevant parameters
 data_transformed_filtered <- data_transformed %>%
   select(
     "Participant Id", "geslacht", "geboortedatum", "datumontstaan", "datumbaselinevisit", "datumpoliFU1", "datumpoliFU2", "datumpoliFU3", "datumpoliFU4", "datumpoliFU5", 
-    "EDSS", "EDSS_FU1", "EDSS_FU2", "EDSS_FU3", "EDSS_FU4", "EDSS_FU5",  
-    "PDDS", "PDDS_FU1", "PDDS_FU2", "PDDS_FU3", "PDDS_FU4", "PDDS_FU5",  
+    "EDSS", "EDSS_FU1", "EDSS_FU2", "EDSS_FU3", "EDSS_FU4", "EDSS_FU5", "EDSS_BL_numeric", "EDSS_FU1_numeric", "EDSS_FU2_numeric", "EDSS_FU3_numeric", "EDSS_FU4_numeric", "EDSS_FU5_numeric",  
+    "PDDS", "PDDS_FU1", "PDDS_FU2", "PDDS_FU3", "PDDS_FU4", "PDDS_FU5", "PDDS_BL_numeric", "PDDS_FU1_numeric", "PDDS_FU2_numeric", "PDDS_FU3_numeric", "PDDS_FU4_numeric", "PDDS_FU5_numeric", 
     "SDMT", "SDMT_FU1", "SDMT_FU2", "SDMT_FU3", "SDMT_FU4", "SDMT_FU5",  
     "gemT25FW", "gemT25FW_FU1", "gemT25FW_FU2", "gemT25FW_FU3", "gemT25FW_FU4", "gemT25FW_FU5", 
     "immuunMSmedicatie", "specmedicatiehuidig", "immuunMSmedicatie_FU1", 
@@ -156,7 +147,6 @@ data_transformed_filtered <- data_transformed_filtered %>%
   left_join(new_subset, by = "Participant Id") 
 
 ## following patients criteria were applied: PIF signed, PPMS diagnosis, had BL visit, correct information, incorrect/missing values are replaced with correct values or NA
-## This process of code is deducted here to hide patient id due to privacy reason
 
 #### LOADING AND TRANSFORMING/CONVERTING HADS DATA FOR ANALYSIS ####
 
@@ -443,7 +433,7 @@ merged_data_1F <- merged_data_1F %>%
 # Calculate age at prev_visit and add the extra column
 merged_data_1F <- merged_data_1F %>%
   mutate(
-    age_at_prev_visit = as.numeric(difftime(prev_visit_date, geboortedatum, unit = "weeks")) / 52.25
+    age_at_prev_visit = as.numeric(difftime(prev_visit_date, geboortedatum, units = "weeks")) / 52.25
   ) %>%
   mutate(age_at_prev_visit = floor(age_at_prev_visit))
 
@@ -716,7 +706,7 @@ merged_data_1F <- merged_data_1F %>%
   left_join(data_AMSQ_complete_criterion_2_filtered_merge, by = "Participant Id") %>%
   left_join(data_AMSQ_complete_criterion_3_filtered_merge, by = "Participant Id")
 
-# Add extra columns to merged_data_1F with information whether AMSQ is present at both prev_ and next_ visit and at both prev_ and next_visit_2 
+# Add extra columns to merged_data_1F with information whether AMSQ is present at both prev_ and next_visit and at both prev_ and next_visit_2 
 merged_data_1F <- merged_data_1F %>%
   mutate(
     AMSQ_prev_and_next_available = !is.na(prev_AMSQ_totaal) & !is.na(next_AMSQ_totaal),
@@ -785,12 +775,12 @@ merged_data_1F <- merged_data_1F %>%
       !is.na(prev_T25FW) & !is.na(next_T25FW) ~ FALSE,
       TRUE ~ FALSE
     )
-  ) # some patients info were manually annotated here due to loss of walking ability at the next_visit_2 and therefore progression, code reducted here due to privacy reason
+  ) # some patients info were manually annotated here due to loss of walking ability at the next_visit and therefore progression, code reducted here due to privacy reason 
 
 ##### 3. Add AMSQ progression data #####
 merged_data_1F <- merged_data_1F %>%
   mutate(
-    # Progression at next_visit compared to prev_visit 
+    # Progression at next_visit compared to prev_visit
     progression_AMSQ = !is.na(prev_AMSQ_totaal) & !is.na(next_AMSQ_totaal) & 
       (next_AMSQ_totaal - prev_AMSQ_totaal) >= 18
   )
@@ -817,7 +807,7 @@ merged_data_1F <- merged_data_1F %>%
       TRUE ~ NA_real_
     ),
     SDMT_progression = case_when(
-      !is.na(prev_SDMT) & !is.na(next_SDMT) & (prev_SDMT - next_SDMT >= 8) ~ TRUE,  # Aangepaste conditie voor afname
+      !is.na(prev_SDMT) & !is.na(next_SDMT) & (prev_SDMT - next_SDMT >= 8) ~ TRUE,  
       !is.na(prev_SDMT) & !is.na(next_SDMT) ~ FALSE,
       TRUE ~ FALSE
     )
@@ -827,7 +817,7 @@ merged_data_1F <- merged_data_1F %>%
 merged_data_1F <- merged_data_1F %>%
   mutate(
     prev_PDDS = case_when(
-      prev_visit == "BL"  ~ PDDS_numeric,
+      prev_visit == "BL"  ~ PDDS_BL_numeric,
       prev_visit == "FU1" ~ PDDS_FU1_numeric,
       prev_visit == "FU2" ~ PDDS_FU2_numeric,
       prev_visit == "FU3" ~ PDDS_FU3_numeric,
@@ -836,7 +826,7 @@ merged_data_1F <- merged_data_1F %>%
       TRUE ~ NA_real_
     ),
     next_PDDS = case_when(
-      next_visit == "BL"  ~ PDDS_numeric,
+      next_visit == "BL"  ~ PDDS_BL_numeric,
       next_visit == "FU1" ~ PDDS_FU1_numeric,
       next_visit == "FU2" ~ PDDS_FU2_numeric,
       next_visit == "FU3" ~ PDDS_FU3_numeric,
@@ -877,7 +867,7 @@ merged_data_1F <- merged_data_1F %>%
   mutate(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS = edss_progression | T25FW_progression | progression_AMSQ | SDMT_progression | PDDS_progression)
 
 
-##### 6. add psychotropic medication and immunomodulatory MS medication for baseline characteristics #####
+##### 6. Add psychotropic medication and immunomodulatory MS medication for baseline characteristics #####
 ## Add psychotropic medication  
 merged_data_1F <- merged_data_1F %>%
   mutate(
@@ -971,7 +961,7 @@ merged_data_1F <- merged_data_1F %>%
   ungroup()
 
 
-##### 7. prepare dataframe for EDSS progression at 2 years #####
+##### 7. Prepare dataframe for EDSS progression at 2 years #####
 # Add column 'next_edss_2' 
 merged_data_1F <- merged_data_1F %>%
   mutate(
@@ -1005,23 +995,6 @@ merged_data_1F <- merged_data_1F %>%
 merged_data_1F_2y <- merged_data_1F %>%
   filter(!is.na(next_visit_2_date))
 
-## View people with missing progression values for EDSS, T25FW, SDMT and PDDS in this dataset
-missing_progression_values_2y <- merged_data_1F_2y %>%
-  filter(
-    is.na(prev_edss) |
-      is.na(next_edss) |
-      is.na(prev_T25FW) |
-      is.na(next_T25FW) |
-      is.na(prev_SDMT) |
-      is.na(next_SDMT) |
-      is.na(prev_PDDS) |
-      is.na(next_PDDS)
-  )
-
-View(missing_progression_values_2y)
-
-### There are no 'unjustified' missing progression values of EDSS/T25FW/SDMT/PDDS at 2y (there are only missing values which are truly unknown)
-
 # Add data T25FW progression at 2 years in column 'next_T25FW_2' (NA = not progressive)
 merged_data_1F_2y <- merged_data_1F_2y %>%
   mutate(
@@ -1038,7 +1011,7 @@ merged_data_1F_2y <- merged_data_1F_2y %>%
       !is.na(prev_T25FW) & !is.na(next_T25FW_2) ~ FALSE,
       TRUE ~ FALSE
     )
-  ) # some patients info were manually annotated here due to changes in disease progression, code reducted here due to privacy reason
+  ) # some patients info were manually annotated here due to loss of walking ability at the next_visit_2 and therefore progression, code reducted here due to privacy reason 
 
 # Add data AMSQ progression at 2 years in column 'next_AMSQ_2_totaal' (NA = not progressive)
 merged_data_1F_2y <- merged_data_1F_2y %>%
@@ -1084,6 +1057,27 @@ merged_data_1F_2y <- merged_data_1F_2y %>%
     )
   )
 
+## View people with missing progression values for EDSS, T25FW, SDMT and PDDS in this dataset
+missing_progression_values_2y <- merged_data_1F_2y %>%
+  filter(
+    is.na(prev_edss) |
+      is.na(next_edss) |
+      is.na(next_edss_2) |
+      is.na(prev_T25FW) |
+      is.na(next_T25FW) |
+      is.na(next_T25FW_2) |
+      is.na(prev_SDMT) |
+      is.na(next_SDMT) |
+      is.na(next_SDMT_2) |
+      is.na(prev_PDDS) |
+      is.na(next_PDDS) |
+      is.na(next_PDDS_2)     
+  )
+
+View(missing_progression_values_2y)
+
+### There are no 'unjustified' missing progression values of EDSS/T25FW/SDMT/PDDS at 2y (there are only missing values which are truly unknown)
+
 # Create combined progression variable for EDSS or T25FW or AMSQ at 2 years 
 merged_data_1F_2y <- merged_data_1F_2y %>%
   mutate(progression_edss_or_T25FW_or_AMSQ_2y = edss_progression_2 | T25FW_progression_2 | progression_AMSQ_2)
@@ -1097,10 +1091,10 @@ merged_data_1F_2y <- merged_data_1F_2y %>%
 write.xlsx(merged_data_1F, file = "merged_data_1F.xlsx")
 write.xlsx(merged_data_1F_2y, file = "merged_data_1F_2y.xlsx")
 
-# remove everything from environment at the end
+# Remove everything from environment at the end
 rm(list=ls())
 
-# save session info
+# Save session info
 sessionInfo()
 
 
