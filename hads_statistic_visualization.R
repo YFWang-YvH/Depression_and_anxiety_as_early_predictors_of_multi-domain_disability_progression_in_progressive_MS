@@ -1,38 +1,17 @@
 #Date: 29-11-2024
 #Author: Romy Klein Kranenbarg
 #Description: 
-# this script is for analysis as part of the manuscript 'Symptoms of depression and anxiety are early predictors of multi-domain disability progression in progressive MS'
+# this script is for analysis as part of the manuscript 'Symptoms of depression and anxiety are early biomarkers of multi-domain disability progression in progressive MS'
 # in this script, we perform statistical analysis as described in the manuscript and visualization for the manuscript
 
 #### SETTING UP THE ENVIRONMENT ####
 ##### 1. Install and load packages #####
-# install.packages("readxl")
-# install.packages("dplyr")
-# install.packages("stringr")
-# install.packages("ggplot2")
-# install.packages("gtsummary")
-# install.packages("emmeans")
-# install.packages("MASS")
-# install.packages("car")
-# install.packages("forecast")
-# install.packages("DHARMa")
-# install.packages("ggVennDiagram")
-
+#install.packages("readxl")
+#install.packages("dplyr")
+#install.packages("stringr")
 library(readxl)
 library(dplyr)
 library(stringr)
-library(ggplot2)
-library(gtsummary)
-library(emmeans)
-library(MASS)
-library(performance)
-library(car)
-library(forecast)
-library(DHARMa)
-library(knitr)
-library(ggVennDiagram)
-library(scales)
-library(openxlsx)
 
 ##### 2. Set up Working directory #####
 setwd("/path/to/your/work/directory")
@@ -62,21 +41,25 @@ cat("3e kwartiel (Q3):", Q3_prev_next, "\n")
 cat("Maximale waarde:", max_prev_next, "\n")
 
 # Determine the descriptive statistics for the number of days between survey_date and prev_visit_date
-survey_prev_stats <- summary(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days")))
-median_survey_prev <- median(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days")), na.rm = TRUE)
-IQR_survey_prev <- IQR(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days")), na.rm = TRUE)
-min_survey_prev <- min(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days")), na.rm = TRUE)
-max_survey_prev <- max(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days")), na.rm = TRUE)
+survey_prev_stats <- summary(abs(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days"))))
+median_survey_prev <- median(abs(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days"))), na.rm = TRUE)
+IQR_survey_prev <- IQR(abs(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days"))), na.rm = TRUE)
+min_survey_prev <- min(abs(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days"))), na.rm = TRUE)
+max_survey_prev <- max(abs(as.numeric(difftime(merged_data_1F$survey_date, merged_data_1F$prev_visit_date, units = "days"))), na.rm = TRUE)
 
-# Print these  descriptive statistics 
-cat("\nStatistieken voor het aantal dagen tussen survey_date en prev_visit_date:\n")
+# Print these descriptive statistics 
+cat("\nStatistieken voor het absolute aantal dagen tussen survey_date en prev_visit_date:\n")
 cat("Minimale waarde:", min_survey_prev, "\n")
 cat("1e kwartiel (Q1):", survey_prev_stats[2], "\n")
 cat("Mediaan:", median_survey_prev, "\n")
 cat("3e kwartiel (Q3):", survey_prev_stats[5], "\n")
 cat("Maximale waarde:", max_survey_prev, "\n")
 
+
 ##### Table 1. Baseline tables #####
+# Install and load required packages
+#install.packages("gtsummary")
+library(gtsummary)
 
 ###### YEAR 1. Baseline tables ######
 # Two manual annotation of the dataframe here due to changes in database (detected for privacy reason)
@@ -347,7 +330,7 @@ baseline_table
 .edss_str_t1 <- function(x) .q_str_t1(x, digits = 1)  
 .hads_str_t1 <- function(x) .q_str_t1(x, digits = 0)  
 
-# baseline table
+# Baseline table 
 baseline_table_progression_edss_or_T25FW_or_AMSQ_2y <- merged_data_1F_2y %>%
   select(
     geslacht, age_at_prev_visit, 
@@ -493,9 +476,11 @@ baseline_table_progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y
 
 ##### Supplementary Table 2.CREATE BASELINE TABLE TO COMPARE PEOPLE WITH 2-3 AVAILABLE VARIABLES TO THOSE WITH 4-5 AVAILABLE VARIABLES WITHIN THE NON-PROGRESSION GROUP #####
 ###### YEAR 1. Supplementary Table 2 ######
+library(dplyr)
+library(gtsummary)
 # Step 1: Create a clean dataset of people without progression 
 merged_data_nonprogression_base <- merged_data_1F %>%
-  filter(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS == 0) %>%
+  dplyr::filter(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS == 0) %>%
   mutate(
     n_progressie_available = 
       1 +  # edss_progression always available
@@ -505,16 +490,16 @@ merged_data_nonprogression_base <- merged_data_1F %>%
       as.integer(SDMT_progressie_boxplot != "Ontbrekend")
   )
 
-# Step 2: Analysis: 2–3 vs 4–5 variables available
+# Step 2: Analysis 1: 2–3 vs 4–5 variables available
 merged_data_subgroup_2_3_vs_4_5 <- merged_data_nonprogression_base %>%
   mutate(
     subgroup_progressiecompleetheid = case_when(
-      n_progressie_available %in% 2:3 ~ "2–3 variabelen available",
-      n_progressie_available %in% 4:5 ~ "4–5 variabelen available",
+      n_progressie_available %in% 2:3 ~ "2–3 variables available",
+      n_progressie_available %in% 4:5 ~ "4–5 variables available",
       TRUE ~ NA_character_
     )
   ) %>%
-  filter(!is.na(subgroup_progressiecompleetheid))
+  dplyr::filter(!is.na(subgroup_progressiecompleetheid))
 
 # Step 2a: Custom functions for HADS-scores with type=1 quantiles and rounding off
 .make_hads_str_t1 <- function(x) {
@@ -531,7 +516,7 @@ merged_data_subgroup_2_3_vs_4_5 <- merged_data_nonprogression_base %>%
 merged_data_subgroup_2_3_vs_4_5 <- merged_data_subgroup_2_3_vs_4_5 %>%
   mutate(subgroup_progressiecompleetheid = factor(
     subgroup_progressiecompleetheid,
-    levels = c("2–3 variabelen beschikbaar", "4–5 variabelen beschikbaar")
+    levels = c("2–3 variables available", "4–5 variables available")
   ))
 
 .by_levels_hads <- merged_data_subgroup_2_3_vs_4_5 %>%
@@ -606,15 +591,72 @@ baseline_table_2_3_vs_4_5 <- merged_data_subgroup_2_3_vs_4_5 %>%
   modify_header(label = "**Variabele**") %>%
   modify_header(
     stat_0 = "**Overall (N = {N})**",
-    stat_1 = "**2–3 beschikbaar (N = {n})**",
-    stat_2 = "**4–5 beschikbaar (N = {n})**"
+    stat_1 = "**2–3 available (N = {n})**",
+    stat_2 = "**4–5 available (N = {n})**"
   ) %>%
   bold_labels()
 
 baseline_table_2_3_vs_4_5
 
+# Determine p-values of significance in HADS scores using post-hoc test 
+# on HADS in linear regression model (glm nb)
+# Comparing people with 2–3 vs 4–5 progression variables available
+
+### 1. Fit Negative Binomial GLM
+m_angst_nb_prog <- glm.nb(hads_angst ~ factor(subgroup_progressiecompleetheid), 
+                          data = merged_data_subgroup_2_3_vs_4_5)
+m_depr_nb_prog  <- glm.nb(hads_depressie ~ factor(subgroup_progressiecompleetheid), 
+                          data = merged_data_subgroup_2_3_vs_4_5)
+m_tot_nb_prog   <- glm.nb(hads_totaal ~ factor(subgroup_progressiecompleetheid), 
+                          data = merged_data_subgroup_2_3_vs_4_5)
+
+### 2. Check model assumptions
+check_model(m_angst_nb_prog)
+check_model(m_depr_nb_prog)
+check_model(m_tot_nb_prog)
+
+### 3. Post-hoc test using emmeans (pairwise, Tukey correction)
+# HADS Anxiety
+emm_angst_nb_prog <- emmeans(m_angst_nb_prog, pairwise ~ subgroup_progressiecompleetheid, adjust = "tukey")
+emm_angst_nb_prog$contrasts
+
+# HADS Depression
+emm_depr_nb_prog <- emmeans(m_depr_nb_prog, pairwise ~ subgroup_progressiecompleetheid, adjust = "tukey")
+emm_depr_nb_prog$contrasts
+
+# HADS Total
+emm_tot_nb_prog <- emmeans(m_tot_nb_prog, pairwise ~ subgroup_progressiecompleetheid, adjust = "tukey")
+emm_tot_nb_prog$contrasts
+
+# Print group size
+table(merged_data_subgroup_2_3_vs_4_5$subgroup_progressiecompleetheid)
+
 ###### YEAR 2. Supplementary Table 2 ######
-# Step 1: code type=1 for variables which showed a 'non-existing' value in the table 
+## CREATE BASELINE TABLE FOR 2 YEAR PROGRESSION GROUP (2–3 vs 4–5 variables available) ##
+# Step 1: Create a clean dataset of people without progression 
+merged_data_nonprogression_base_2y <- merged_data_1F_2y %>%
+  dplyr::filter(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y == 0) %>%
+  mutate(
+    n_progressie_available = 
+      1 +  # edss_progression_2 is always available
+      1 +  # PDDS_progression_2 is always available
+      as.integer(T25FW_boxplotgroep_2y != "Ontbrekend") +
+      as.integer(AMSQ_boxplotgroep_2y != "Ontbrekend") +
+      as.integer(SDMT_boxplotgroep_2y != "Ontbrekend")
+  )
+
+# Step 2: Analysis 1: 2–3 vs 4–5 variables available
+merged_data_subgroup_2_3_vs_4_5_2y <- merged_data_nonprogression_base_2y %>%
+  mutate(
+    subgroup_progressiecompleetheid = case_when(
+      n_progressie_available %in% 2:3 ~ "2–3 variables available",
+      n_progressie_available %in% 4:5 ~ "4–5 variables available",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  dplyr::filter(!is.na(subgroup_progressiecompleetheid))
+
+# Step 3: code type=1 for variables which showed a 'non-existing' value in the table 
 .make_t1_str <- function(x, digits = 0) {
   x <- x[!is.na(x)]
   if (!length(x)) return("—")
@@ -636,7 +678,7 @@ baseline_table_2_3_vs_4_5
   )
 }
 
-# Step 2: Analysis: 2–3 vs 4–5 variabeles available
+# Step 4: Analysis 1: 2–3 vs 4–5 variables available
 .by_levels_2y_a <- merged_data_subgroup_2_3_vs_4_5_2y %>%
   distinct(subgroup_progressiecompleetheid) %>%
   arrange(subgroup_progressiecompleetheid) %>%
@@ -671,7 +713,7 @@ baseline_table_2_3_vs_4_5_2y <- merged_data_subgroup_2_3_vs_4_5_2y %>%
       all_categorical() ~ "{n}/{N} ({p}%)",
       all_continuous() ~ "{median} ({p25}, {p75})"
     ),
-    type = list(prev_edss ~ "continuous", next_edss_2 ~ "continuous")
+    type = list(prev_edss ~ "continuous")
   ) %>%
   add_overall() %>%
   add_p(
@@ -704,10 +746,51 @@ baseline_table_2_3_vs_4_5_2y <- merged_data_subgroup_2_3_vs_4_5_2y %>%
 # Result
 baseline_table_2_3_vs_4_5_2y
 
+# Determine p-values of significance in HADS scores using post-hoc test 
+# on HADS in linear regression model (glm nb)
+# Comparing people with 2–3 vs 4–5 progression variables available (2-year follow-up)
+
+### 1. Fit Negative Binomial GLM
+m_angst_nb_2y <- glm.nb(hads_angst ~ factor(subgroup_progressiecompleetheid), 
+                        data = merged_data_subgroup_2_3_vs_4_5_2y)
+m_depr_nb_2y  <- glm.nb(hads_depressie ~ factor(subgroup_progressiecompleetheid), 
+                        data = merged_data_subgroup_2_3_vs_4_5_2y)
+m_tot_nb_2y   <- glm.nb(hads_totaal ~ factor(subgroup_progressiecompleetheid), 
+                        data = merged_data_subgroup_2_3_vs_4_5_2y)
+
+### 2. Check model assumptions
+check_model(m_angst_nb_2y)
+check_model(m_depr_nb_2y)
+check_model(m_tot_nb_2y)
+
+### 3. Post-hoc test using emmeans (pairwise, Tukey correction)
+# HADS Anxiety
+emm_angst_nb_2y <- emmeans(m_angst_nb_2y, pairwise ~ subgroup_progressiecompleetheid, adjust = "tukey")
+emm_angst_nb_2y$contrasts
+
+# HADS Depression
+emm_depr_nb_2y <- emmeans(m_depr_nb_2y, pairwise ~ subgroup_progressiecompleetheid, adjust = "tukey")
+emm_depr_nb_2y$contrasts
+
+# HADS Total
+emm_tot_nb_2y <- emmeans(m_tot_nb_2y, pairwise ~ subgroup_progressiecompleetheid, adjust = "tukey")
+emm_tot_nb_2y$contrasts
+
+# Print group size
+table(merged_data_subgroup_2_3_vs_4_5_2y$subgroup_progressiecompleetheid)
+
 
 ##### Figure 2 & Supplementary Figure 1 & Figure 2. - boxplots and statistics of HADS scores by 1-year and 2-year progression  #####
+# Install and load required packages
+#install.packages("ggplot2")
+#install.packages("MASS")
+#install.packages("emmeans")
+library(ggplot2)
+library(MASS)
+library(performance)
+library(emmeans)
 
-###### 1. year 1 visualization and statistics ######
+###### 1. Year 1 visualization and statistics ######
 
 #### HADS vs EDSS progression 1 year after completing HADS
 # Check if there are NAs in edss_progression --> no NAs
@@ -811,7 +894,7 @@ merged_data_1F <- merged_data_1F %>%
       TRUE ~ "Ontbrekend"
     ),
     
-    # manual annotation for two patients (T25FW no longer possible due to progression resulting in loss of walking ability) - reducted due to privacy reasons
+    # some patients info were manually annotated here due to loss of walking ability at the next_visit and therefore progression, code reducted here due to privacy reason 
     
     # Put in factor form for control over order in box plot
     T25FW_boxplotgroep = factor(T25FW_boxplotgroep, levels = c(
@@ -954,7 +1037,7 @@ boxAMSQ3a
 subset_data_AMSQ <- merged_data_1F %>%
   filter(AMSQ_progressie_boxplot %in% c("Geen AMSQ Progressie", "AMSQ Progressie"))
 
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_AMSQ <- glm.nb(hads_angst ~ factor(AMSQ_progressie_boxplot), data = merged_data_1F)
 m_depr_nb_AMSQ  <- glm.nb(hads_depressie ~ factor(AMSQ_progressie_boxplot), data = merged_data_1F)
@@ -965,7 +1048,7 @@ check_model(m_angst_nb_AMSQ)
 check_model(m_depr_nb_AMSQ)
 check_model(m_tot_nb_AMSQ)
 
-### 3. Post-hoc test using emmeans (pairwise, Tukey test)
+### 3. Post-hoc test using emmeans (pairwise, Tukey correctie)
 # HADS Anxiety
 emm_angst_nb_AMSQ <- emmeans(m_angst_nb_AMSQ, pairwise ~ AMSQ_progressie_boxplot, adjust = "tukey")
 emm_angst_nb_AMSQ$contrasts
@@ -989,7 +1072,7 @@ ggsave("figuren/boxplot_hads_depressie_vs_AMSQ_wNAs_19092025.png", plot = boxAMS
 ggsave("figuren/boxplot_hads_totaal_vs_AMSQ_wNAs_19092025.png", plot = boxAMSQ3a, width = 6, height = 4, dpi = 300)     
 
 #### HADS vs SDMT progression 1 year after completing HADS     
-# make separate variabele so that NAs are displayed separately (instead of NA = not progresssive)     
+# Make separate variable so that NAs are displayed separately (instead of NA = not progresssive)     
 merged_data_1F <- merged_data_1F %>%
   mutate(
     SDMT_progressie_boxplot = case_when(
@@ -1046,7 +1129,7 @@ boxSDMT3a
 subset_data_sdmt <- merged_data_1F %>%
   filter(SDMT_progressie_boxplot %in% c("Geen SDMT Progressie", "SDMT Progressie"))
 
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_SDMT <- glm.nb(hads_angst ~ factor(SDMT_progressie_boxplot), data = merged_data_1F)
 m_depr_nb_SDMT  <- glm.nb(hads_depressie ~ factor(SDMT_progressie_boxplot), data = merged_data_1F)
@@ -1115,7 +1198,7 @@ boxPDDS3 <- ggplot(merged_data_1F, aes(x = factor(PDDS_progression), y = hads_to
 boxPDDS3
 
 #### statistics - HADS vs PDDS progression 1 year after completing HADS 
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_PDDS <- glm.nb(hads_angst ~ factor(PDDS_progression), data = merged_data_1F)
 m_depr_nb_PDDS  <- glm.nb(hads_depressie ~ factor(PDDS_progression), data = merged_data_1F)
@@ -1205,7 +1288,7 @@ stats_summary <- merged_data_1F %>%
 
 print(stats_summary, width = Inf)
 
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_3varcomp <- glm.nb(hads_angst ~ factor(progression_edss_or_T25FW_or_AMSQ), data = merged_data_1F)
 m_depr_nb_3varcomp  <- glm.nb(hads_depressie ~ factor(progression_edss_or_T25FW_or_AMSQ), data = merged_data_1F)
@@ -1216,7 +1299,7 @@ check_model(m_angst_nb_3varcomp)
 check_model(m_depr_nb_3varcomp)
 check_model(m_tot_nb_3varcomp)
 
-### 3. Post-hoc test using emmeans (pairwise, Tukey correctie)
+### 3. Post-hoc test using emmeans (pairwise, Tukey correction)
 # HADS Anxiety
 emm_angst_nb_3varcomp <- emmeans(m_angst_nb_3varcomp, pairwise ~ progression_edss_or_T25FW_or_AMSQ, adjust = "tukey")
 emm_angst_nb_3varcomp$contrasts
@@ -1269,7 +1352,7 @@ boxedss_T25FW_AMSQ_SDMT_PDDS3 <- ggplot(merged_data_1F, aes(x = factor(progressi
 boxedss_T25FW_AMSQ_SDMT_PDDS3
 
 #### statistics - EDSS, T25FW, AMSQ, SDMT or PDDS progression 1 year after completing HADS 
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_5varcomp <- glm.nb(hads_angst ~ factor(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS), data = merged_data_1F)
 m_depr_nb_5varcomp  <- glm.nb(hads_depressie ~ factor(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS), data = merged_data_1F)
@@ -1322,7 +1405,7 @@ ggsave("figuren/boxplot_hads_angst_vs_edss_T25FW_AMSQ_SDMT_PDDS_19092025.png", p
 ggsave("figuren/boxplot_hads_depressie_vs_edss_T25FW_AMSQ_SDMT_PDDS_19092025.png", plot = boxedss_T25FW_AMSQ_SDMT_PDDS2, width = 5, height = 4, dpi = 300)
 ggsave("figuren/boxplot_hads_totaal_vs_edss_T25FW_AMSQ_SDMT_PDDS_19092025.png", plot = boxedss_T25FW_AMSQ_SDMT_PDDS3, width = 5, height = 4, dpi = 300)      
 
-###### 2. year 2 visualization and statistics ######
+###### 2. Year 2 visualization and statistics ######
 
 #### HADS vs EDSS progression 2 year after completing HADS
 # Check if there are any NAs in edss_progression_2 --> no NAs
@@ -1361,7 +1444,7 @@ boxedss3_2y <- ggplot(merged_data_1F_2y, aes(x = factor(edss_progression_2), y =
 boxedss3_2y
 
 #### statistics - HADS vs EDSS progression 2 year after completing HADS
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_EDSS_2y <- glm.nb(hads_angst ~ factor(edss_progression_2), data = merged_data_1F_2y)
 m_depr_nb_EDSS_2y  <- glm.nb(hads_depressie ~ factor(edss_progression_2), data = merged_data_1F_2y)
@@ -1406,8 +1489,8 @@ merged_data_1F_2y <- merged_data_1F_2y %>%
       TRUE ~ "Ontbrekend"
     ),
     
-    # Manually annotate a few patients - deducted due to privacy reasons
-   
+    # some patients info were manually annotated here due to loss of walking ability at the next_visit_2 and therefore progression, code reducted here due to privacy reason 
+    
     T25FW_boxplotgroep_2y = factor(T25FW_boxplotgroep_2y,
                                    levels = c("Geen T25FW Progressie", "T25FW Progressie", "Ontbrekend"))
   )
@@ -1452,7 +1535,7 @@ box_T25FW_2y3 <- ggplot(merged_data_1F_2y, aes(x = T25FW_boxplotgroep_2y, y = ha
 box_T25FW_2y3
 
 #### statistics - HADS scores vs T25FW progression 2 years after completing HADS  
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_T25FW_2y <- glm.nb(hads_angst ~ factor(T25FW_boxplotgroep_2y), data = merged_data_1F_2y)
 m_depr_nb_T25FW_2y  <- glm.nb(hads_depressie ~ factor(T25FW_boxplotgroep_2y), data = merged_data_1F_2y)
@@ -1511,6 +1594,7 @@ box_AMSQ_2y <- ggplot(merged_data_1F_2y, aes(x = AMSQ_boxplotgroep_2y, y = hads_
   labs(x = "AMSQ Progressie (2 jaar)", y = "HADS Angst Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+box_AMSQ_2y
 
 ### Supplementary 2J - HADS depression score vs AMSQ progression after 2 years (NAs = shown separately)
 box_AMSQ_2y2 <- ggplot(merged_data_1F_2y, aes(x = AMSQ_boxplotgroep_2y, y = hads_depressie, fill = AMSQ_boxplotgroep_2y)) +
@@ -1523,6 +1607,7 @@ box_AMSQ_2y2 <- ggplot(merged_data_1F_2y, aes(x = AMSQ_boxplotgroep_2y, y = hads
   labs(x = "AMSQ Progressie (2 jaar)", y = "HADS Depressie Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+box_AMSQ_2y2
 
 ### Supplementary 2B - HADS total score vs AMSQ progression after 2 years (NAs = shown separately)
 box_AMSQ_2y3 <- ggplot(merged_data_1F_2y, aes(x = AMSQ_boxplotgroep_2y, y = hads_totaal, fill = AMSQ_boxplotgroep_2y)) +
@@ -1535,10 +1620,10 @@ box_AMSQ_2y3 <- ggplot(merged_data_1F_2y, aes(x = AMSQ_boxplotgroep_2y, y = hads
   labs(x = "AMSQ Progressie (2 jaar)", y = "HADS Totaal Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
-
+box_AMSQ_2y3
 
 #### statistics - HADS scores vs AMSQ progression 2 years after HADS
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_AMSQ_2y <- glm.nb(hads_angst ~ factor(AMSQ_boxplotgroep_2y), data = merged_data_1F_2y)
 m_depr_nb_AMSQ_2y  <- glm.nb(hads_depressie ~ factor(AMSQ_boxplotgroep_2y), data = merged_data_1F_2y)
@@ -1599,6 +1684,7 @@ box_SDMT_2y <- ggplot(merged_data_1F_2y, aes(x = SDMT_boxplotgroep_2y, y = hads_
   labs(x = "SDMT Progressie (2 jaar)", y = "HADS Angst Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+box_SDMT_2y
 
 ### Supplementary 2K - HADS depression score vs SDMT progression after 2 years (NAs = shown separately)
 box_SDMT_2y2 <- ggplot(merged_data_1F_2y, aes(x = SDMT_boxplotgroep_2y, y = hads_depressie, fill = SDMT_boxplotgroep_2y)) +
@@ -1611,6 +1697,7 @@ box_SDMT_2y2 <- ggplot(merged_data_1F_2y, aes(x = SDMT_boxplotgroep_2y, y = hads
   labs(x = "SDMT Progressie (2 jaar)", y = "HADS Depressie Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+box_SDMT_2y2
 
 ### Supplementary 2C - total HADS score vs SDMT progression after 2 years (NAs = shown separately)
 box_SDMT_2y3 <- ggplot(merged_data_1F_2y, aes(x = SDMT_boxplotgroep_2y, y = hads_totaal, fill = SDMT_boxplotgroep_2y)) +
@@ -1623,9 +1710,10 @@ box_SDMT_2y3 <- ggplot(merged_data_1F_2y, aes(x = SDMT_boxplotgroep_2y, y = hads
   labs(x = "SDMT Progressie (2 jaar)", y = "HADS Totaal Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+box_SDMT_2y3
 
 #### statistics - HADS scores vs SDMT progression 2 years after completing HADS   
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_SDMT_2y <- glm.nb(hads_angst ~ factor(SDMT_boxplotgroep_2y), data = merged_data_1F_2y)
 m_depr_nb_SDMT_2y  <- glm.nb(hads_depressie ~ factor(SDMT_boxplotgroep_2y), data = merged_data_1F_2y)
@@ -1673,6 +1761,7 @@ box_PDDS_2y <- ggplot(merged_data_1F_2y, aes(x = factor(PDDS_progression_2), y =
   labs(x = "PDDS Progressie (2 jaar)", y = "HADS Angst Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+box_PDDS_2y
 
 ### Supplementary 2L - HADS depression score vs PDDS progression after 2 years
 box_PDDS_2y2 <- ggplot(merged_data_1F_2y, aes(x = factor(PDDS_progression_2), y = hads_depressie, fill = factor(PDDS_progression_2))) +
@@ -1682,6 +1771,7 @@ box_PDDS_2y2 <- ggplot(merged_data_1F_2y, aes(x = factor(PDDS_progression_2), y 
   labs(x = "PDDS Progressie (2 jaar)", y = "HADS Depressie Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+box_PDDS_2y2
 
 ### Supplementary 2D - total HADS score vs PDDS progression after 2 years
 box_PDDS_2y3 <- ggplot(merged_data_1F_2y, aes(x = factor(PDDS_progression_2), y = hads_totaal, fill = factor(PDDS_progression_2))) +
@@ -1691,9 +1781,10 @@ box_PDDS_2y3 <- ggplot(merged_data_1F_2y, aes(x = factor(PDDS_progression_2), y 
   labs(x = "PDDS Progressie (2 jaar)", y = "HADS Totaal Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+box_PDDS_2y3
 
 #### statistics - HADS scores vs PDDS progression 2 years after completing HADS  
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_PDDS_2y <- glm.nb(hads_angst ~ factor(PDDS_progression_2), data = merged_data_1F_2y)
 m_depr_nb_PDDS_2y  <- glm.nb(hads_depressie ~ factor(PDDS_progression_2), data = merged_data_1F_2y)
@@ -1743,6 +1834,7 @@ boxedss_T25FW_AMSQ1_2y <- ggplot(merged_data_1F_2y, aes(x = factor(progression_e
   labs(x = "Progressie (EDSS of T25FW of AMSQ, 2 jaar)", y = "HADS Angst Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+boxedss_T25FW_AMSQ1_2y
 
 ### Figure 2U - HADS depression vs EDSS or T25FW or AMSQ progression 2 years after completing HADS 
 boxedss_T25FW_AMSQ2_2y <- ggplot(merged_data_1F_2y, aes(x = factor(progression_edss_or_T25FW_or_AMSQ_2y), y = hads_depressie, fill = factor(progression_edss_or_T25FW_or_AMSQ_2y))) +
@@ -1752,6 +1844,7 @@ boxedss_T25FW_AMSQ2_2y <- ggplot(merged_data_1F_2y, aes(x = factor(progression_e
   labs(x = "Progressie (EDSS of T25FW of AMSQ, 2 jaar)", y = "HADS Depressie Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+boxedss_T25FW_AMSQ2_2y
 
 ### Figure 2I - HADS total vs EDSS or T25FW or AMSQ progression 2 years after completing HADS 
 boxedss_T25FW_AMSQ3_2y <- ggplot(merged_data_1F_2y, aes(x = factor(progression_edss_or_T25FW_or_AMSQ_2y), y = hads_totaal, fill = factor(progression_edss_or_T25FW_or_AMSQ_2y))) +
@@ -1761,9 +1854,10 @@ boxedss_T25FW_AMSQ3_2y <- ggplot(merged_data_1F_2y, aes(x = factor(progression_e
   labs(x = "Progressie (EDSS of T25FW of AMSQ, 2 jaar)", y = "HADS Totaal Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+boxedss_T25FW_AMSQ3_2y
 
 #### statistics - HADS scores vs EDSS or T25FW or AMSQ progression 2 years after completing HADS 
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_3varcomp_2y <- glm.nb(hads_angst ~ factor(progression_edss_or_T25FW_or_AMSQ_2y), data = merged_data_1F_2y)
 m_depr_nb_3varcomp_2y  <- glm.nb(hads_depressie ~ factor(progression_edss_or_T25FW_or_AMSQ_2y), data = merged_data_1F_2y)
@@ -1793,7 +1887,7 @@ table(merged_data_1F_2y$progression_edss_or_T25FW_or_AMSQ_2y)
 
 merged_data_1F_2y %>%
   count(progression_edss_or_T25FW_or_AMSQ_2y, sort = TRUE, name = "Aantal") %>%
-  rename(Groep = progression_edss_or_T25FW_or_AMSQ_2y) %>%
+  rename(Group = progression_edss_or_T25FW_or_AMSQ_2y) %>%
   print()
 
 # Save using ggsave
@@ -1811,6 +1905,7 @@ boxedss_T25FW_AMSQ_SDMT_PDDS1_2y <- ggplot(merged_data_1F_2y, aes(x = factor(pro
   labs(x = "Progressie (5vars)", y = "HADS Angst Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+boxedss_T25FW_AMSQ_SDMT_PDDS1_2y
 
 ### Figure 2V - Boxplot HADS depression
 boxedss_T25FW_AMSQ_SDMT_PDDS2_2y <- ggplot(merged_data_1F_2y, aes(x = factor(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y), y = hads_depressie, fill = factor(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y))) +
@@ -1820,6 +1915,7 @@ boxedss_T25FW_AMSQ_SDMT_PDDS2_2y <- ggplot(merged_data_1F_2y, aes(x = factor(pro
   labs(x = "Progressie (5vars)", y = "HADS Depressie Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+boxedss_T25FW_AMSQ_SDMT_PDDS2_2y
 
 ### Figure 2J - Boxplot HADS total
 boxedss_T25FW_AMSQ_SDMT_PDDS3_2y <- ggplot(merged_data_1F_2y, aes(x = factor(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y), y = hads_totaal, fill = factor(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y))) +
@@ -1829,9 +1925,10 @@ boxedss_T25FW_AMSQ_SDMT_PDDS3_2y <- ggplot(merged_data_1F_2y, aes(x = factor(pro
   labs(x = "Progressie (5vars)", y = "HADS Totaal Score") +
   theme_minimal() +
   theme(legend.title = element_blank())
+boxedss_T25FW_AMSQ_SDMT_PDDS3_2y
 
 #### statistics - HADS scores vs progression EDSS or T25FW or AMSQ or SDMT or PDDS 2 years after completing HADS 
-# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in LINEAIR regression model (glm nb)
+# Determine p-values of significance of differences in HADS scores using post-hoc test on HADS in linear regression model (glm nb)
 ### 1. Fit Negative Binomial GLM
 m_angst_nb_5varcomp_2y <- glm.nb(hads_angst ~ factor(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y), data = merged_data_1F_2y)
 m_depr_nb_5varcomp_2y  <- glm.nb(hads_depressie ~ factor(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y), data = merged_data_1F_2y)
@@ -1856,7 +1953,7 @@ emm_tot_nb_5varcomp_2y <- emmeans(m_tot_nb_5varcomp_2y, pairwise ~ progression_e
 emm_tot_nb_5varcomp_2y$contrasts
 
 # Print group size
-table(merged_data_1F_2y$progression_edss_or_T25FW_or_SDMT_or_PDDS_2y)
+table(merged_data_1F_2y$progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y)
 
 # Save using ggsave
 ggsave("figuren/boxplot_hads_angst_vs_edss_T25FW_AMSQ_SDMT_PDDS_2y.png", plot = boxedss_T25FW_AMSQ_SDMT_PDDS1_2y, width = 5, height = 4, dpi = 300)
@@ -1897,7 +1994,7 @@ merged_data_1F <- merged_data_1F %>%
     by = "Participant Id"
   )
 
-# The variabeles 'progression_edss_or_T25FW_or_AMSQ_2y' and 'progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y' are now duplicated in merged_data_1F, so remove them and delete '.x' and '.y' 
+# The variables 'progression_edss_or_T25FW_or_AMSQ_2y' and 'progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y' are now duplicated in merged_data_1F, so remove them and delete '.x' and '.y' 
 merged_data_1F <- merged_data_1F %>%
   mutate(
     progression_edss_or_T25FW_or_AMSQ_2y = progression_edss_or_T25FW_or_AMSQ_2y.x,
@@ -1912,8 +2009,11 @@ merged_data_1F <- merged_data_1F %>%
 
 
 ##### Figure 2 - Venndiagrams of overlaps between different progression measurements #####
+# Install and load required packages
+#install.packages("ggVennDiagram")
+library(ggVennDiagram)
 
-###### 1. year 1 visualization ######
+###### 1. Year 1 visualization ######
 # Make sets per progression outcome (only use TRUE values)
 venn_list_1y <- list(
   EDSS = merged_data_1F %>% filter(edss_progression == 1) %>% pull(`Participant Id`),
@@ -1978,7 +2078,7 @@ venndiagram1y3var <- ggVennDiagram(
 
 venndiagram1y3var
 
-###### 2. year 2 visualization ######
+###### 2. Year 2 visualization ######
 # Make sets per progression outcome (only use TRUE values)
 venn_list_2y <- list(
   EDSS = merged_data_1F_2y %>% filter(edss_progression_2 == 1) %>% pull(`Participant Id`),
@@ -2077,8 +2177,16 @@ venn_table_2y3
 venn_table_2y5
 
 ##### Figure 3. LOGISTIC REGRESSION ANALYSIS and visualization #####      
+# Install and load required packages
+#install.packages("car")
+#install.packages("forecast")
+#install.packages("DHARMa")
+library(car)
+library(forecast)
+library(DHARMa)
+library(scales)
 
-###### 1. year 1 visualization and statistics ######
+###### 1. Year 1 visualization and statistics ######
 
 # Convert prev_edss to an ordinal factor with specified levels
 merged_data_1F$prev_edss <- factor(merged_data_1F$prev_edss,
@@ -2109,20 +2217,20 @@ model1F3c <- glm(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS ~ log10(hads_
                  data = merged_data_1F, family = binomial())
 
 # Check model assumptions and compare models
-AIC(model1F3a, model1F3b, model1F3c)
-anova(model1F1, model1F2, model1F3, model1F4)
-vif(model1F4)
-summary(model1F3c)
+AIC(model1F1a, model1F1b, model1F1c)
+anova(model1F1, model1F2, model1F3)
+vif(model1F1a)
+summary(model1F1a)
 
-checkresiduals(model1F3c)
-residualPlots(model1F3c)
+checkresiduals(model1F1a)
+residualPlots(model1F1a)
 
-simulationoutput = simulateResiduals(fittedModel = model1F3c)
+simulationoutput = simulateResiduals(fittedModel = model1F1a)
 plot(simulationoutput)
 
 ##### Create forest plot with OR's and 95% CI's 
 
-##### Forest plot multivariable logistic regression model of log10 hads + 0.1 1y 
+##### Forest plot logistic regression models of log10 hads + 0.1 1y 
 
 # Function to extract OR + 95% CI from a model
 extract_or <- function(model, variable_name, hads_type, progression_type) {
@@ -2226,7 +2334,7 @@ forestplot1y
 # Save using ggsave
 ggsave("figuren/forestplot1yv3_19092025.png", plot = forestplot1y, width = 5, height = 8, dpi = 900)
 
-###### 2. year 2 visualization and statistics ######
+###### 2. Year 2 visualization and statistics ######
 # Convert prev_edss to an ordinal factor with specified levels
 merged_data_1F_2y$prev_edss <- factor(merged_data_1F_2y$prev_edss,
                                       levels = c( 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
@@ -2255,9 +2363,21 @@ model1F7b <- glm(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y ~ log10(ha
 model1F7c <- glm(progression_edss_or_T25FW_or_AMSQ_or_SDMT_or_PDDS_2y ~ log10(hads_totaal+0.1) + offset(log10(age_at_prev_visit)), 
                  data = merged_data_1F_2y, family = binomial())
 
+# Check model assumptions and compare models
+AIC(model1F5a, model1F5b, model1F5c)
+anova(model1F5, model1F6, model1F7)
+vif(model1F5a)
+summary(model1F5a)
+
+checkresiduals(model1F5a)
+residualPlots(model1F5a)
+
+simulationoutput = simulateResiduals(fittedModel = model1F5a)
+plot(simulationoutput)
+
 ##### Create forest plot with OR's and 95% CI's
 
-##### Forest plot multivariable logistic regression model of log10 hads + 0.1 2y
+##### Forest plot logistic regression models of log10 hads + 0.1 2y
 
 # Function to extract OR + 95% CI from a model
 extract_or <- function(model, variable_name, hads_type, progression_type) {
